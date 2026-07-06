@@ -15,12 +15,11 @@
 **What I did:** Added a new pytest called `test_add_to_watchlist_nonexistent_film_raises` to `tests/test_watchlist.py`. This test specifically asserts that invoking `add_to_watchlist` with an invalid or missing `film_id` correctly raises a domain-level `FilmNotFoundError`.
 **How I verified:** Mirrored the logic assertion patterns used in `test_add_to_collection_nonexistent_film_raises` from `tests/test_collection.py`. Verified the implementation by executing `pytest tests/test_watchlist.py -v` in the terminal, confirming the test suite executes and passes cleanly.
 
-## Comment 4 — Default visibility:
-What happens if a user calls this with a film that's already on their watchlist? The current implementation would add a duplicate entry. Please handle this case.
+## Comment 4 — Default visibility: I notice watchlists default to public=True. We don't have a documented decision on default visibility for user lists. Before I can approve this, I need you to add a note to your PR description explaining your reasoning. I want to make sure we're being intentional here, not just inheriting a default.
 
-**My position:**
-**Reasoning:**
-**Tradeoff acknowledged:**
+**My position:** I have kept the default visibility as public=True.
+**Reasoning:** CineLog is built to be community-centric and encourages users sharing their lists and interactions with others. Because our goal is to foster community, we will leave turning off visibility as opt-in rather than the default.
+**Tradeoff acknowledged:** The primary tradeoff of a public default is user privacy. Users who want to curate a private or experimental watchlist might be caught off guard if they assume their list is confidential by default. However, this is heavily mitigated by giving users an explicit parameter to opt out and implementing a reminder to the user that the default visibility is public balancing social platform optimization with user privacy.
 
 ## Comment 5 — Sort order:
 I'd prefer watchlists to default to "date added" order rather than alphabetical. Most users want to see what they added recently. I'm open to discussion if you see it differently — but let's make a decision and document it.

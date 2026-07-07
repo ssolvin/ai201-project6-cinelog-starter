@@ -74,7 +74,7 @@ def test_add_to_watchlist_nonexistent_film_raises(app, sample_user):
 
     with app.app_context(): 
 
-        fake_film_id = 99999
+        fake_film_id = "00000000-0000-0000-0000-000000000000"
 
 
 

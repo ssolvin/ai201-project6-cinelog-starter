@@ -1,7 +1,8 @@
 # PR Response Doc — CineLog Watchlist Feature
 
 ## AI Usage
-<!-- Fill in at the end — how you used AI tools during this project -->
+
+During this project, I utilized AI tools to assist with codebase orientation, standards compliance, and final document preparation. Specifically, I used the AI to analyze the existing structure of `services/collection_service.py` to understand how the application handles business logic patterns and exception throwing. I also leveraged AI to review my git commit history to ensure all six incremental updates strictly adhered to the lowercase prefix constraints of the Conventional Commits specification. Finally, I used the AI to help format and clean up the markdown structure of my final documentation to ensure it was highly readable for the engineering team.
 
 ## Comment 1 — Rename: save_to_watchlist() should follow the project's naming convention. Compare with add_to_collection() — the pattern here is verb_to_noun. Please rename to add_to_watchlist() and update all call sites.
 **What I did:** Renamed the service function `save_to_watchlist` to `add_to_watchlist` inside `services/watchlist_service.py` to match CineLog's established `verb_to_noun` naming convention. I also updated the functions and files that called the previous function name.
@@ -31,8 +32,27 @@ I'd prefer watchlists to default to "date added" order rather than alphabetical.
 ## Comment 6 — Rebase:
 A refactor merged to main that changed film IDs from integers to UUIDs. Your watchlist code still references integer IDs. Please rebase on main and update accordingly.
 
-**What conflicted:** Merging the latest updates from the `main` branch created a structural conflict because a recent refactor migrated all core film identifiers (`film_id`) from sequential integers to globally unique identifiers (UUIDs). This broke my initial implementation of `add_to_watchlist`, which explicitly expected and handled integer types for `film_id`, causing structural type mismatches and test failures with the updated database schema.
-**How I resolved it:** I executed a git rebase onto `main` (`git fetch origin` followed by `git rebase origin/main`). During the interactive conflict resolution, I updated the model mappings and docstrings within `services/watchlist_service.py` to seamlessly handle string-based UUID values. I also went into my newly created test file, `tests/test_watchlist.py`, and swapped out the hardcoded mock integer values (like `99999`) for a valid, standard UUID string format (e.g., `"00000000-0000-0000-0000-000000000000"`).
-**How I verified no conflict remains:** Ran a clean git status check to verify the rebase successfully concluded with zero unresolved merge markers. I then executed the entire verification test suite locally using `pytest tests/ -v` to ensure the new UUID-driven watchlist queries process correctly and no database integrity errors are thrown.
+**What conflicted:** Merging the latest updates from the `main` branch introduced a structural data error. The upstream refactor migrated all core film identifiers (`film_id`) from sequential integers to string-based UUIDs. Because my feature branch was initially written assuming integer keys, this schema change broke type validation and compatibility with the updated database models.
+**How I resolved it:** I executed `git rebase origin/main` to replay my branch history cleanly on top of the latest upstream commits. I then updated the new `WatchlistEntry` model's foreign key definitions in `models.py` to use `db.String(36)` instead of integers, matching the fresh UUID schema. Finally, I went into `tests/test_watchlist.py` and modified the nonexistent film test to pass a standard mock UUID string (`"00000000-0000-0000-0000-000000000000"`) instead of the outdated integer `99999`.
+**How I verified no conflict remains:** I then executed the validation test suite using `pytest tests/ -v`, confirming that all 6 tests pass.
+
 ## PR Description
-<!-- Written at the end — feature overview, design decisions, manual testing steps -->
+This PR adds the Watchlist feature to CineLog, including the database model, service functions, and API routes. The branch has been rebased on `main` to support the new UUID identifiers. 
+
+For design choices, watchlists default to public visibility (`public=True`) to align with the app's community-driven goal of list sharing, but users can explicitly pass a parameter to make them private. Additionally, the list is sorted descending by date added (`WatchlistEntry.date_added.desc()`) instead of alphabetically, since users typically want to see their most recent additions first. 
+
+Manual Testing Steps
+
+1. Initialize the App and Schema: Run `python app.py` in your terminal to start the local server and ensure the database updates with the new watchlist schema.
+   
+2. Check the Empty State: Send a `GET` request to `/watchlist/<user_id>`. Verify that it returns an empty list `[]` with a `200 OK` status.
+   
+3. Add a Valid Film: Send a `POST` request to `/watchlist/<user_id>/add` with a JSON payload containing a valid film UUID (e.g., `{"film_id": "<valid-uuid>"}`). Verify it returns the new entry details with a `201 Created` status.
+   
+4. Verify Deduplication Check: Send the exact same `POST` request from Step 3 again. Verify that the app blocks the duplicate and returns the custom error message.
+   
+5. **Verify Missing Film Error Handling:** Send a `POST` request to the add endpoint using a nonexistent UUID string (e.g., `00000000-0000-0000-0000-000000000000`). Confirm it cleanly catches the exception and returns a film not found error.
+
+# Git Log History Screenshot
+
+![Git Log History](git_log.png)

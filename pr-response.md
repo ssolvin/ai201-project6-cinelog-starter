@@ -24,16 +24,15 @@
 ## Comment 5 — Sort order:
 I'd prefer watchlists to default to "date added" order rather than alphabetical. Most users want to see what they added recently. I'm open to discussion if you see it differently — but let's make a decision and document it.
 
-**My position:**
-**Reasoning:**
-**Engagement with reviewer's point:**
+**My position:** I agree that watchlists should be shorted by "date added" instead of alphabetical and have left it. I have changed ordering by `Film.title.asc()` to `WatchlistEntry.date_added.desc()` from alphabetical to descending by date added.
+**Reasoning:** Most users want to view their own watchlists and think of movies that they were most recently thinking of, not thinking of them alphabetically.
+**Engagement with reviewer's point:** I agree with the reviewer that most users want to see their watchlists by what they most recently added. Alphabetical sorting is more useful for static, categorical collections, while a watchlist is more dynamic.
 
 ## Comment 6 — Rebase:
 A refactor merged to main that changed film IDs from integers to UUIDs. Your watchlist code still references integer IDs. Please rebase on main and update accordingly.
 
-**What conflicted:**
-**How I resolved it:**
-**How I verified no conflict remains:**
-
+**What conflicted:** Merging the latest updates from the `main` branch created a structural conflict because a recent refactor migrated all core film identifiers (`film_id`) from sequential integers to globally unique identifiers (UUIDs). This broke my initial implementation of `add_to_watchlist`, which explicitly expected and handled integer types for `film_id`, causing structural type mismatches and test failures with the updated database schema.
+**How I resolved it:** I executed a git rebase onto `main` (`git fetch origin` followed by `git rebase origin/main`). During the interactive conflict resolution, I updated the model mappings and docstrings within `services/watchlist_service.py` to seamlessly handle string-based UUID values. I also went into my newly created test file, `tests/test_watchlist.py`, and swapped out the hardcoded mock integer values (like `99999`) for a valid, standard UUID string format (e.g., `"00000000-0000-0000-0000-000000000000"`).
+**How I verified no conflict remains:** Ran a clean git status check to verify the rebase successfully concluded with zero unresolved merge markers. I then executed the entire verification test suite locally using `pytest tests/ -v` to ensure the new UUID-driven watchlist queries process correctly and no database integrity errors are thrown.
 ## PR Description
 <!-- Written at the end — feature overview, design decisions, manual testing steps -->
